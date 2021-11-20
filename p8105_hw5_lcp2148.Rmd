@@ -95,8 +95,11 @@ Tidy the result; manipulate file names to include control arm and subject ID, ma
 
 ```{r study}
 
+path = "./data/problem_2/"
+data_in = list.files("./data/problem_2/")  %>% 
+  mutate(subject = map(path, ~ read_csv(file.path(path, .)))
 
-data_in = list.files("./data/problem_2/") 
+
 files = dir(data_in, pattern = "*clean.csv")
 
 data_1 = tibble(filename = files) %>%
@@ -104,13 +107,14 @@ data_1 = tibble(filename = files) %>%
                              ~ read_csv(file.path(data_path, .)))) %>% 
            unnest()
 
-path = "./data/problem_2/con_01.csv"
+
 read_cvs("./data/problem_2/con_01.csv") 
 
-data_come_on = tibble(
-  file_name = list.files(path = ".data/problem_2"), 
+data_study = tibble(
+  file_name = list.files(path = "./data/problem_2/"), 
     data = map(path, read_csv)) %>% 
-           unnest(cols = data)
+           unnest(cols = data)   %>% 
+  mutate(summary = map(samp, mean_and_sd))
 
 #then unnest columbs 
 #then tidy for arms..
