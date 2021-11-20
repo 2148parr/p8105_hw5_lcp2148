@@ -20,9 +20,9 @@ homicide =
   read_csv("./data/homicide-data.csv", na = c("", "Unknown")) %>%
   mutate(city_state = str_c(city, state), 
          resolution = case_when(
-           disposition == "Closed without arrest" ~ "unsolved", 
-           disposition == "Open/no arrest" ~ "unsolved", 
-           disposition == "Closed by arrest" ~ "solved"))  %>%
+           disposition == "Closed without arrest"  ~ "unsolved", 
+           disposition == "Open/No arrest"         ~ "unsolved", 
+           disposition == "Closed by arrest"       ~ "solved"))  %>%
   relocate(city_state) %>%
   filter(city_state != "TulsaAL")
 
@@ -57,6 +57,30 @@ baltimore_test %>%
 ```
 
 
+
+```{r nest}
+
+nested = homicide  %>%
+  nest(data = uid:resolution)
+
+baltimore_summary = 
+  baltimore %>%
+  summarize(
+    unsolved = sum(resolution == "unsolved"), 
+    n = n())
+
+baltimore_test =
+  prop.test(
+  x = baltimore_summary %>% pull(unsolved), 
+  n = baltimore_summary %>% pull(n)
+)
+
+baltimore_test %>%
+  broom::tidy()
+
+```
+
+
 Create a plot that shows the estimates and CIs for each city – check out geom_errorbar for a way to add error bars based on the upper and lower limits. Organize cities according to the proportion of unsolved homicides.
 
 ## Problem 2
@@ -68,22 +92,37 @@ Create a tidy dataframe containing data from all participants, including the sub
 Start with a dataframe containing all file names; the list.files function will help
 Iterate over file names and read in data for each subject using purrr::map and saving the result as a new variable in the dataframe
 Tidy the result; manipulate file names to include control arm and subject ID, make sure weekly observations are “tidy”, and do any other tidying that’s necessary
+
+```{r study}
+
+
+data_in = list.files("./data/problem_2/") 
+files = dir(data_in, pattern = "*clean.csv")
+
+data_1 = tibble(filename = files) %>%
+  mutate(file_contents = map(filename, 
+                             ~ read_csv(file.path(data_path, .)))) %>% 
+           unnest()
+
+path = "./data/problem_2/con_01.csv"
+read_cvs("./data/problem_2/con_01.csv") 
+
+data_come_on = tibble(
+  file_name = list.files(path = ".data/problem_2"), 
+    data = map(path, read_csv)) %>% 
+           unnest(cols = data)
+
+#then unnest columbs 
+#then tidy for arms..
+# WIDE TO LONG for some weeks
+```
+
+
 Make a spaghetti plot showing observations on each subject over time, and comment on differences between groups.
 
 ## Problem 3
+
 The code chunk below loads the iris dataset from the tidyverse package and introduces some missing values in each column. The purpose of this problem is to fill in those missing values.
-
-
-```{r iris}
-
-set.seed(10)
-
-iris_with_missing = iris %>% 
-  map_df(~replace(.x, sample(1:150, 20), NA)) %>%
-  mutate(Species = as.character(Species))
-
-```
-
 
 There are two cases to address:
 
