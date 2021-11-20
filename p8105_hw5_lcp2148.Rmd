@@ -41,7 +41,7 @@ baltimore = homicide  %>%
 
 baltimore_summary = 
   baltimore %>%
-  summarize(
+  dplyr::summarize(
     unsolved = sum(resolution == "unsolved"), 
     n = n())
 
@@ -56,32 +56,56 @@ baltimore_test %>%
 
 ```
 
+write function and iterate across all cities
 
 
 ```{r nest}
 
-nested = homicide  %>%
-  nest(data = uid:resolution)
+prop_test_function = function(city_df) {
+  city_summary = 
+    city_df %>%
+    dplyr::summarize(unsolved = sum(resolution == "unsolved"),
+              n = n())
 
-baltimore_summary = 
-  baltimore %>%
-  summarize(
-    unsolved = sum(resolution == "unsolved"), 
-    n = n())
-
-baltimore_test =
+city_test = 
   prop.test(
-  x = baltimore_summary %>% pull(unsolved), 
-  n = baltimore_summary %>% pull(n)
-)
+    x = city_summary %>% pull(unsolved), 
+    n = city_summary %>% pull(n)
+  )
+return(city_test)
 
-baltimore_test %>%
-  broom::tidy()
+}
+
+results = homicide  %>%
+  nest(data = uid:resolution) %>%
+  mutate(
+    test_results = map(data, prop_test_function), 
+    tidy_results = map(test_results, broom::tidy)
+  )  %>%
+  select(city_state, tidy_results)  %>%
+  unnest(tidy_results) %>%
+  select(city_state, estimate, starts_with("conf")) 
 
 ```
 
 
 Create a plot that shows the estimates and CIs for each city – check out geom_errorbar for a way to add error bars based on the upper and lower limits. Organize cities according to the proportion of unsolved homicides.
+
+
+
+```{r plot}
+
+results %>% 
+  mutate(city_state = fct_reorder(city_state, estimate)) %>% 
+  ggplot(aes(x = city_state, y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+  
+
+```
+
+
 
 ## Problem 2
 
@@ -94,26 +118,16 @@ Iterate over file names and read in data for each subject using purrr::map and s
 Tidy the result; manipulate file names to include control arm and subject ID, make sure weekly observations are “tidy”, and do any other tidying that’s necessary
 
 ```{r study}
-
+read_csv("./data/problem_2/con_01.csv") 
 path = "./data/problem_2/"
-data_in = list.files("./data/problem_2/")  %>% 
-  mutate(subject = map(path, ~ read_csv(file.path(path, .)))
 
+data = list.files(path = "./data/problem_2/", 
+                  pattern = "*.csv",
+                  full.names = T)  %>% 
+  map_df(~read_csv(.)) %>% 
+  pivot_longer(cols = week_1:week_8, 
+               names_to = subject)
 
-files = dir(data_in, pattern = "*clean.csv")
-
-data_1 = tibble(filename = files) %>%
-  mutate(file_contents = map(filename, 
-                             ~ read_csv(file.path(data_path, .)))) %>% 
-           unnest()
-
-
-read_cvs("./data/problem_2/con_01.csv") 
-
-data_study = tibble(
-  file_name = list.files(path = "./data/problem_2/"), 
-    data = map(path, read_csv)) %>% 
-           unnest(cols = data)   %>% 
   mutate(summary = map(samp, mean_and_sd))
 
 #then unnest columbs 
