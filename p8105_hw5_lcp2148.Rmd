@@ -126,13 +126,8 @@ data = list.files(path = "./data/problem_2/",
                   full.names = T)  %>% 
   map_df(~read_csv(.)) %>% 
   pivot_longer(cols = week_1:week_8, 
-               names_to = subject)
+               names_to = "subject_id")
 
-  mutate(summary = map(samp, mean_and_sd))
-
-#then unnest columbs 
-#then tidy for arms..
-# WIDE TO LONG for some weeks
 ```
 
 
