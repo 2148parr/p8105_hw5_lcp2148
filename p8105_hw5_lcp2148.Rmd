@@ -59,7 +59,6 @@ baltimore_test %>%
 
 I then write a function for the prop.test to iterate across all cities and obtain proportions and CIs across the data set. 
 
-
 ```{r nest}
 
 prop_test_function = function(city_df) {
@@ -89,9 +88,7 @@ results = homicide  %>%
 
 ```
 
-
 Next, I make a plot that shows the estimates and CIs for each city, organized according to the proportion of unsolved homicides.
-
 
 ```{r plot}
 
@@ -109,7 +106,7 @@ results %>%
 
 I create a dataframe containing all file names from the study using the `list.files` function will help, then read in all files using `map` to iterate. 
 
-Then I tidy the result, including manipulating file names to include control arm and subject ID.
+Then I tidy the result, including manipulating file names to include study arm and subject ID.
 
 ```{r study, message = FALSE}
 
@@ -129,9 +126,7 @@ data = list.files(path = "./data/problem_2/",
 
 ```
 
-
-Next, I make a spaghetti plot showing observations on each subject over time, and comment on differences between groups.
-
+Next, I make a spaghetti plot showing observations on each subject over time, distinguishing the two arms of the study by color.
 
 ```{r study_plot}
 
@@ -149,18 +144,16 @@ data_plot
   
 ```
 
-There were increases in observation value for participants in the experimental arm, while the control arm appears fairly static. 
-
+There were increases in observation values for participants in the experimental arm, while the observations in the control arm appear fairly static. 
 
 ## Problem 3
 
-I load in the iris dataset with missing values in each column, then write a function that:
+I load in the iris data set with missing values in each column, then write a function that:
 
 - For numeric variables, fills in missing values with the mean of non-missing values
 - For character variables, fills in missing values with "virginica"
 
 I then apply this function to the columns of iris_with_missing using a `map` statement.
-
 
 ```{r iris}
 
