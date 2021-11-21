@@ -1,20 +1,25 @@
 ---
-title: "p8105_hw5_lcp2148.Rmd"
-output: github_document
+title: "Homework 5"
+author: "Lydia Parr" 
+date: 2019-11-20
+output: 
+  github_document
 ---
 
-```{r setup}
+Loading in needed package: 
+
+```{r setup, message = FALSE}
 library(tidyverse)
 ```
 
 ## Problem 1
 
-The Washington Post has gathered data on homicides in 50 large U.S. cities and made the data available through a GitHub repository here. You can read their accompanying article here.
+I start by reading in the raw data grom the Washington Post. I then: 
 
-Describe the raw data. Create a city_state variable (e.g. “Baltimore, MD”) and then summarize within cities to obtain the total number of homicides and the number of unsolved homicides (those for which the disposition is “Closed without arrest” or “Open/No arrest”).
+- Create a city_state variable 
+- Obtain the number of homicides and the number of unsolved homicides based on disposition using `mutate`
 
-
-```{r homicide}
+```{r homicide, message = FALSE}
 
 homicide = 
   read_csv("./data/homicide-data.csv", na = c("", "Unknown")) %>%
@@ -28,11 +33,7 @@ homicide =
 
 ```
 
-
-For the city of Baltimore, MD, use the prop.test function to estimate the proportion of homicides that are unsolved; save the output of prop.test as an R object, apply the broom::tidy to this object and pull the estimated proportion and confidence intervals from the resulting tidy dataframe.
-
-Now run prop.test for each of the cities in your dataset, and extract both the proportion of unsolved homicides and the confidence interval for each. Do this within a “tidy” pipeline, making use of purrr::map, purrr::map2, list columns and unnest as necessary to create a tidy dataframe with estimated proportions and CIs for each city.
-
+I then use the prop.test function to estimate the proportion of homicides that are unsolved in Baltimore, save the output of prop.test as an R object, apply the broom::tidy to this object to pull the estimated proportion and confidence intervals from the resulting tidy dataframe.
 
 ```{r baltimore}
 
@@ -56,7 +57,7 @@ baltimore_test %>%
 
 ```
 
-write function and iterate across all cities
+I then write a function for the prop.test to iterate across all cities and obtain proportions and CIs across the data set. 
 
 
 ```{r nest}
@@ -89,8 +90,7 @@ results = homicide  %>%
 ```
 
 
-Create a plot that shows the estimates and CIs for each city – check out geom_errorbar for a way to add error bars based on the upper and lower limits. Organize cities according to the proportion of unsolved homicides.
-
+Next, I make a plot that shows the estimates and CIs for each city, organized according to the proportion of unsolved homicides.
 
 
 ```{r plot}
@@ -105,17 +105,11 @@ results %>%
 
 ```
 
-
-
 ## Problem 2
 
-This zip file contains data from a longitudinal study that included a control arm and an experimental arm. Data for each participant is included in a separate file, and file names include the subject ID and arm.
+I create a dataframe containing all file names from the study using the `list.files` function will help, then read in all files using `map` to iterate. 
 
-Create a tidy dataframe containing data from all participants, including the subject ID, arm, and observations over time:
-
-Start with a dataframe containing all file names; the list.files function will help
-Iterate over file names and read in data for each subject using purrr::map and saving the result as a new variable in the dataframe
-Tidy the result; manipulate file names to include control arm and subject ID, make sure weekly observations are “tidy”, and do any other tidying that’s necessary
+Then I tidy the result, including manipulating file names to include control arm and subject ID.
 
 ```{r study, message = FALSE}
 
@@ -130,12 +124,13 @@ data = list.files(path = "./data/problem_2/",
                values_to = "observation") %>% 
   mutate(arm = case_when(str_detect(arm_id, 'con') ~ "control",
                          str_detect(arm_id, 'exp') ~ "experimental"))  %>% 
+  mutate_at("week", str_replace, "week_", "")  %>% 
   select(-c(arm_id))
 
 ```
 
 
-Make a spaghetti plot showing observations on each subject over time, and comment on differences between groups.
+Next, I make a spaghetti plot showing observations on each subject over time, and comment on differences between groups.
 
 
 ```{r study_plot}
@@ -154,19 +149,17 @@ data_plot
   
 ```
 
-There were increases in observation for participants in the experimental arm, while the control arm was fairly static. 
+There were increases in observation value for participants in the experimental arm, while the control arm appears fairly static. 
 
 
 ## Problem 3
 
-The code chunk below loads the iris dataset from the tidyverse package and introduces some missing values in each column. The purpose of this problem is to fill in those missing values.
+I load in the iris dataset with missing values in each column, then write a function that:
 
-There are two cases to address:
+- For numeric variables, fills in missing values with the mean of non-missing values
+- For character variables, fills in missing values with "virginica"
 
-- For numeric variables, you should fill in missing values with the mean of non-missing values
-- For character variables, you should fill in missing values with "virginica"
-- Write a function that takes a vector as an argument; replaces missing values using the rules defined above; and returns the resulting vector. - Apply this function to the columns of iris_with_missing using a map statement.
-
+I then apply this function to the columns of iris_with_missing using a `map` statement.
 
 
 ```{r iris}
@@ -190,9 +183,8 @@ filled_in = function(vector) {
 
 iris_final = map(iris_with_missing, filled_in) 
 
-sum(is.na(iris_final))
-
 ```
 
+I can corroborate that this was done correctly by taking the sum of missing/NA in the final data set: `r sum(is.na(iris_final))`
 
 
