@@ -117,16 +117,22 @@ Start with a dataframe containing all file names; the list.files function will h
 Iterate over file names and read in data for each subject using purrr::map and saving the result as a new variable in the dataframe
 Tidy the result; manipulate file names to include control arm and subject ID, make sure weekly observations are “tidy”, and do any other tidying that’s necessary
 
-```{r study}
-read_csv("./data/problem_2/con_01.csv") 
+```{r study, message = FALSE}
+
 path = "./data/problem_2/"
 
 data = list.files(path = "./data/problem_2/", 
                   pattern = "*.csv",
                   full.names = T)  %>% 
   map_df(~read_csv(.)) %>% 
+  mutate(arm_id = list.files("./data/problem_2/"), 
+         subject_id = 1:20) %>% 
   pivot_longer(cols = week_1:week_8, 
-               names_to = "subject_id")
+               names_to = "week", 
+               values_to = "observations") %>% 
+  mutate(arm = case_when(str_detect(arm_id, 'con') ~ "control",
+                         str_detect(arm_id, 'exp') ~ "experimental"))  %>% 
+  select(-c(arm_id))
 
 ```
 
@@ -139,9 +145,9 @@ The code chunk below loads the iris dataset from the tidyverse package and intro
 
 There are two cases to address:
 
-For numeric variables, you should fill in missing values with the mean of non-missing values
-For character variables, you should fill in missing values with "virginica"
-Write a function that takes a vector as an argument; replaces missing values using the rules defined above; and returns the resulting vector. Apply this function to the columns of iris_with_missing using a map statement.
+- For numeric variables, you should fill in missing values with the mean of non-missing values
+- For character variables, you should fill in missing values with "virginica"
+- Write a function that takes a vector as an argument; replaces missing values using the rules defined above; and returns the resulting vector. - Apply this function to the columns of iris_with_missing using a map statement.
 
 
 
